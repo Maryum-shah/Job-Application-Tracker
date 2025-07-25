@@ -1,0 +1,107 @@
+import React, { useState, useEffect } from "react";
+import "./styles.css";
+
+export default function App() {
+  const [jobs, setJobs] = useState([]);
+  const [form, setForm] = useState({
+    company: "",
+    title: "",
+    status: "Applied",
+    date: "",
+    notes: "",
+  });
+
+  useEffect(() => {
+    const storedJobs = JSON.parse(localStorage.getItem("jobs")) || [];
+    setJobs(storedJobs);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("jobs", JSON.stringify(jobs));
+  }, [jobs]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.company || !form.title || !form.date) return;
+    setJobs([...jobs, { ...form, id: Date.now() }]);
+    setForm({
+      company: "",
+      title: "",
+      status: "Applied",
+      date: "",
+      notes: "",
+    });
+  };
+
+  const deleteJob = (id) => {
+    const updated = jobs.filter((job) => job.id !== id);
+    setJobs(updated);
+  };
+
+  return (
+    <div className="container">
+      <h1>Job Application Tracker</h1>
+
+      <form onSubmit={handleSubmit} className="job-form">
+        <input
+          name="company"
+          value={form.company}
+          onChange={handleChange}
+          placeholder="Company Name"
+          required
+        />
+        <input
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+          placeholder="Job Title"
+          required
+        />
+        <select name="status" value={form.status} onChange={handleChange}>
+          <option>Applied</option>
+          <option>Interviewing</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+        </select>
+        <input
+          name="date"
+          type="date"
+          value={form.date}
+          onChange={handleChange}
+          required
+        />
+        <textarea
+          name="notes"
+          value={form.notes}
+          onChange={handleChange}
+          placeholder="Notes"
+        />
+        <button type="submit">Add Job</button>
+      </form>
+
+      <div className="job-list">
+        {jobs.length === 0 && <p>No applications added yet.</p>}
+        {jobs.map((job) => (
+          <div className="job-card" key={job.id}>
+            <h3>{job.company}</h3>
+            <p>
+              <strong>Title:</strong> {job.title}
+            </p>
+            <p>
+              <strong>Status:</strong> {job.status}
+            </p>
+            <p>
+              <strong>Applied on:</strong> {job.date}
+            </p>
+            <p>{job.notes}</p>
+            <button onClick={() => deleteJob(job.id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
